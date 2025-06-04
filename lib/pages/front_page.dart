@@ -1,0 +1,247 @@
+// lib/pages/front_page.dart
+import 'package:congress_app/models/subscription.dart';
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Still needed for DocumentSnapshot in _lastDoc (for now)
+import 'package:intl/intl.dart'; // For date formatting
+
+// Import your custom widgets and services
+import 'package:congress_app/services/firestore_service.dart';
+import 'package:congress_app/models/article.dart';
+import 'package:congress_app/widgets/CustomAppBar.dart';
+import 'package:congress_app/widgets/AppDrawer.dart';
+import 'package:congress_app/widgets/article_card.dart'; // For individual recent articles
+import 'package:congress_app/widgets/top_article_hero.dart'; // For the top article display
+
+// Import your page destinations
+import 'package:congress_app/pages/article_page.dart';
+import 'package:congress_app/pages/about_page.dart';
+import 'package:congress_app/pages/subscribe_page.dart'; // Assuming you add this page
+
+class FrontPage extends StatefulWidget {
+  const FrontPage({Key? key}) : super(key: key);
+
+  @override
+  _FrontPageState createState() => _FrontPageState();
+}
+
+class _FrontPageState extends State<FrontPage> {
+  // Instantiate your FirestoreService
+  final FirestoreService _firestoreService = FirestoreService();
+
+  // State variables for articles
+  final int _limit = 9; // Number of articles to load per batch
+  List<Article> _recentArticles = [];
+  Article? _topArticle; // Nullable for when it's not yet loaded
+  DocumentSnapshot<Article>? _lastDocument; // Store the last document for pagination
+  bool _isLoadingInitialData = true; // For the very first load
+  bool _isLoadingMore = false; // For pagination loading
+  bool _hasMore = true; // To know if there are more articles to load
+
+  // For drawer navigation
+  String _currentRoute = 'Home';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchInitialData();
+  }
+
+  Future<void> _fetchInitialData() async {
+    setState(() {
+      _isLoadingInitialData = true;
+      _recentArticles.clear(); // Clear previous data if re-fetching
+      _lastDocument = null; // Reset for fresh fetch
+      _hasMore = true;
+    });
+
+    try {
+      // Fetch the top article
+      _topArticle = await _firestoreService.getTopArticle();
+
+      final List<Article> initialRecentArticles = await _firestoreService.getRecentArticles(limit: _limit);
+
+      _recentArticles = initialRecentArticles;
+      // To manage _lastDocument for pagination, your FirestoreService should ideally return it,
+      // or you get it from the raw snapshot which means your service returns QuerySnapshot
+      // Let's adapt _loadMoreArticles to use raw snapshots to fit _lastDocument logic.
+
+    } catch (e) {
+      print('Error loading initial data: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to load articles. Please check your connection.')),
+      );
+    } finally {
+      setState(() {
+        _isLoadingInitialData = false;
+      });
+    }
+  }
+
+  Future<void> _loadMoreRecentArticles() async {
+    if (_isLoadingMore || !_hasMore || _isLoadingInitialData) return; // Prevent multiple loads
+
+    setState(() => _isLoadingMore = true);
+
+    try {
+      // Pass _lastDocument to your service for true pagination
+      final QuerySnapshot<Article> snapshot = await _firestoreService.getRecentArticlesTypedRawSnapshot(
+        limit: _limit,
+        startAfterDoc: _lastDocument,
+      );
+
+      if (snapshot.docs.isNotEmpty) {
+        _lastDocument = snapshot.docs.last;
+        // Map DocumentSnapshot to Article model
+        _recentArticles.addAll(snapshot.docs.map((doc) => doc.data()).toList());
+      }
+
+      setState(() {
+        _isLoadingMore = false;
+        _hasMore = snapshot.docs.length == _limit; // Check if the limit was reached
+      });
+    } catch (e) {
+      print('Error loading more articles: $e');
+      setState(() => _isLoadingMore = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to load more articles.')),
+      );
+    }
+  }
+
+
+  // This method handles all drawer navigation
+  void _onDrawerNavigate(String route) {
+    Navigator.pop(context); // Always close the drawer first
+
+    // Prevent navigating to the same route if already there
+    if (_currentRoute == route) return;
+
+    setState(() {
+      _currentRoute = route; // Update selected item
+    });
+
+    switch (route) {
+      case 'Home':
+        // If already on Home, do nothing or scroll to top
+        // For now, just setting state is enough if it's the current page
+        break;
+      case 'About':
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutPage()));
+        break;
+      case 'Subscribe':
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionPage()));
+        break;
+      // Add more cases for other routes
+      default:
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {    
+    final formattedDateTime = DateFormat('EEEE, MMMM d, yyyy').format(DateTime.now()); // Changed 'EEEE, MMMM d,YYYY' to 'EEEE, MMMM d, yyyy' for correct year formatting
+   
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: CustomAppBar( // Use your custom AppBar
+        formattedDate: formattedDateTime, // Pass the formatted date
+      ),
+      drawer: AppDrawer( // Use your custom Drawer
+        currentRoute: _currentRoute,
+        onNavigate: _onDrawerNavigate,
+      ),
+      body: _isLoadingInitialData
+          ? const Center(child: CircularProgressIndicator()) // Initial loading indicator
+          : RefreshIndicator(
+              onRefresh: _fetchInitialData, // Pull-to-refresh to re-fetch all data
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (ScrollNotification scrollInfo) {
+                  // Load more articles when scrolled near the bottom
+                  if (!_isLoadingMore && scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent - 200 && 
+                  scrollInfo.metrics.extentBefore > 0 
+                  ) {
+                    _loadMoreRecentArticles();
+                    return true;
+                  }
+                  return false;
+                },
+                child: SingleChildScrollView( // Changed to SingleChildScrollView to allow for scroll
+                  child: Center(
+                    child: Container(
+                      decoration: const BoxDecoration(color: Colors.white),
+                      constraints: const BoxConstraints(maxWidth: 860),
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Display Top Article
+                          if (_topArticle != null)
+                            TopArticleHero( // Use custom widget for Top Article
+                              article: _topArticle!,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ArticlePage(articleId: _topArticle!.id),
+                                  ),
+                                );
+                              },
+                            )
+                          else
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: Text('No "Top" article found.'),
+                              ),
+                            ),
+                          const Divider(height: 32),
+                          // Display Recent Articles
+                          if (_recentArticles.isNotEmpty)
+                            Wrap(
+                              spacing: -2, // Consider adjusting these for better spacing
+                              runSpacing: 16,
+                              children: _recentArticles.map((article) {
+                                return ArticleCard( // Use custom widget for Article Card
+                                  article: article,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ArticlePage(articleId: article.id), // <--- FIXED LINE!
+                                      ),
+                                    );
+                                  },
+                                );
+                              }).toList(),
+                            )
+                          else if (!_isLoadingInitialData && _topArticle == null) // Show message only if no top article and not loading
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(20.0),
+                                child: Text(
+                                  'No articles found. Check your database or internet connection.',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          // Loading indicator for more articles
+                          if (_isLoadingMore)
+                            const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Center(child: CircularProgressIndicator()),
+                            )
+                          else if (!_hasMore && _recentArticles.isNotEmpty)
+                            const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Center(child: Text('You\'ve reached the end of the articles!')),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+    );
+  }
+}

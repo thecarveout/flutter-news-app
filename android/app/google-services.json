@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "336164230355",
+    "firebase_url": "https://thecarveout-ce0f3-default-rtdb.firebaseio.com",
+    "project_id": "thecarveout-ce0f3",
+    "storage_bucket": "thecarveout-ce0f3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:336164230355:android:b092b15f8ad74058303026",
+        "android_client_info": {
+          "package_name": "com.example.congress_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACuqtLrjVx-fE1Wo3SxTikB85cVV037Ng"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
