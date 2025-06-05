@@ -11,6 +11,7 @@ import 'package:congress_app/widgets/CustomAppBar.dart';
 import 'package:congress_app/widgets/AppDrawer.dart';
 import 'package:congress_app/widgets/article_card.dart'; // For individual recent articles
 import 'package:congress_app/widgets/top_article_hero.dart'; // For the top article display
+import 'package:congress_app/widgets/image_with_attribution.dart';
 
 // Import your page destinations
 import 'package:congress_app/pages/article_page.dart';

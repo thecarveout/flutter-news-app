@@ -5,27 +5,26 @@ import 'package:intl/intl.dart';
 import 'package:congress_app/models/article.dart'; // Import your Article model
 import 'package:congress_app/widgets/CustomAppBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:congress_app/widgets/image_with_attribution.dart'; // Import your new widget
 
-class ArticlePage extends StatefulWidget { // Change to StatefulWidget
-  final String articleId; // Now, this page receives only the articleId
+class ArticlePage extends StatefulWidget {
+  final String articleId;
 
-  // Remove the 'article' parameter from the constructor
   const ArticlePage({Key? key, required this.articleId}) : super(key: key);
 
   @override
   State<ArticlePage> createState() => _ArticlePageState();
 }
 
-class _ArticlePageState extends State<ArticlePage> { // State class for ArticlePage
-  late Future<Article?> _articleFuture; // Will hold the future result of fetching the article
+class _ArticlePageState extends State<ArticlePage> {
+  late Future<Article?> _articleFuture;
 
   @override
   void initState() {
     super.initState();
-    _articleFuture = _fetchArticle(); // Start fetching the article when the page initializes
+    _articleFuture = _fetchArticle();
   }
 
-  // Method to fetch the article from Firestore
   Future<Article?> _fetchArticle() async {
     try {
       final docSnapshot = await FirebaseFirestore.instance
@@ -34,7 +33,6 @@ class _ArticlePageState extends State<ArticlePage> { // State class for ArticleP
           .get();
 
       if (docSnapshot.exists) {
-        // Assuming your Article.fromFirestore method can handle a DocumentSnapshot
         return Article.fromFirestore(docSnapshot);
       } else {
         return null; // Article not found
@@ -48,28 +46,29 @@ class _ArticlePageState extends State<ArticlePage> { // State class for ArticleP
   @override
   Widget build(BuildContext context) {
     // You might want to get the date from the fetched article if it has a timestamp field
-    final formattedDateTime = DateFormat('EEEE, MMMM d, yyyy').format(DateTime.now()); 
+    // For now, keeping your original line for formatted date.
+    final formattedDateTime = DateFormat('EEEE, MMMM d, yyyy').format(DateTime.now());
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         formattedDate: formattedDateTime,
       ),
-      body: FutureBuilder<Article?>( // Use FutureBuilder to handle the async fetch
+      body: FutureBuilder<Article?>(
         future: _articleFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator()); // Show loading indicator
+            return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}')); // Show error message
+            return Center(child: Text('Error: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data == null) {
-            return const Center(child: Text('Article not found.')); // Handle article not found
+            return const Center(child: Text('Article not found.'));
           }
 
-          // If we reach here, the article has been successfully fetched
-          final Article article = snapshot.data!; // Get the fetched Article object
+          final Article article = snapshot.data!;
+          final formattedArticleDate = DateFormat('EEEE, MMMM d, yyyy').format(article.createdOn.toDate());
 
           return SingleChildScrollView(
             child: Center(
@@ -93,26 +92,31 @@ class _ArticlePageState extends State<ArticlePage> { // State class for ArticleP
                     ),
                     const SizedBox(height: 16),
 
-                    // Header Image
-                    if (article.headerImage.isNotEmpty) ...[
-                      Image.network(
-                        article.headerImage,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                  : null,
-                            ),
+                    // Article Created-On Date
+                    Text(
+                      formattedArticleDate,
+                      style: GoogleFonts.merriweather(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        height: 1.2,
+                        letterSpacing: -1,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // --- Header Image ---
+                    // This section was already correct!
+                    if (article.headerImage.isNotEmpty)
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          return ImageWithAttribution(
+                            imageDocId: article.headerImage!,
+                            desiredWidth: constraints.maxWidth, // Pass the constrained width
                           );
                         },
-                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 100),
                       ),
-                      const SizedBox(height: 16),
-                    ],
+                    const SizedBox(height: 16),
+                    // --- End Header Image ---
 
                     // Article Content (Iterate through the list of maps)
                     Column(
@@ -127,28 +131,32 @@ class _ArticlePageState extends State<ArticlePage> { // State class for ArticleP
                               padding: const EdgeInsets.only(bottom: 8.0),
                               child: Text(
                                 value is String ? value : '',
-                                style: Theme.of(context).textTheme.bodyLarge,
-                                textAlign: TextAlign.justify,
+                                style: GoogleFonts.merriweather(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  height: 1.5,
+                                  letterSpacing: 0,
+                                )
                               ),
                             );
                           case 'image':
+                            // --- Embedded Image ---
+                            // ADD LayoutBuilder here to pass the correct width to ImageWithAttribution
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 16.0),
-                              child: Image.network(
-                                value is String ? value : '',
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                loadingBuilder: (context, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return Center(
-                                    child: CircularProgressIndicator(
-                                      value: loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!,
+                              child: LayoutBuilder( // <--- ADD THIS LayoutBuilder
+                                builder: (context, constraints) {
+                                 return AspectRatio(
+                                    aspectRatio: 16 / 9, // Or another suitable aspect ratio
+                                    child: ImageWithAttribution(
+                                      imageDocId: value is String ? value : '',
+                                      desiredWidth: constraints.maxWidth, // <--- PASS desiredWidth
                                     ),
                                   );
                                 },
-                                errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 100),
                               ),
                             );
+                          // --- End Embedded Image ---
                           case 'blockquote':
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),

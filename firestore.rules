@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Rules for your 'articles' collection
+    match /articles/{articleId} {
+      // IMPORTANT: REPLACE 'YOUR_ADMIN_UID_HERE' with the actual UID you copied from Firebase Authentication.
+      // The adminUid is now directly embedded in the rule below.
+
+      // Anyone can read news articles
+      allow read: if true;
+
+      // ONLY your admin UID can create, update, or delete articles
+      allow write: if request.auth != null && request.auth.uid == 'B7a5H5FOoNTlDIN7NYUuA7X5iBd2';
+
+      // Optional: You can uncomment and add more specific validation rules here
+      /*
+      allow create: if request.auth != null && request.auth.uid == 'B7a5H5FOoNTlDIN7NYUuA7X5iBd2'
+                    && request.resource.data.title is string
+                    && request.resource.data.content is string;
+
+      allow update: if request.auth != null && request.auth.uid == 'B7a5H5FOoNTlDIN7NYUuA7X5iBd2'
+                    && request.resource.data.keys().hasAll(['title', 'content']);
+      */
+    }
+
+    // Default rule: Deny all other reads/writes for any other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+  }
+}

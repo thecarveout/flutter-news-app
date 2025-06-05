@@ -50,7 +50,7 @@ class AppDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.mail_outline, color: Colors.white),
-            title: const Text('Subscribe', style: TextStyle(color: Colors.white)),
+            title: const Text('Subscribe (coming soon)', style: TextStyle(color: Colors.white)),
             selected: currentRoute == 'Subscribe',
             onTap: () => onNavigate('Subscribe'),
           ),
