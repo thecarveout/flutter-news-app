@@ -61,10 +61,32 @@ class _FrontPageState extends State<FrontPage> {
 
       final List<Article> initialRecentArticles = await _firestoreService.getRecentArticles(limit: _limit);
 
-      _recentArticles = initialRecentArticles;
+      // --- START OF ADDITION / MODIFICATION ---
+      // Filter out the article that has 'Top' as its category
+      // assuming Article model has a 'category' field.
+      // If the top article is determined by some other property, adjust the condition.
+      _recentArticles = initialRecentArticles.where((article) =>
+          article.category != 'Top'
+      ).toList();
+
+      // If the top article itself was part of the initial fetch (which is possible
+      // if your 'getRecentArticles' query doesn't exclude 'Top' categories),
+      // and if your top article is also meant to be excluded from the recent list,
+      // you could also explicitly remove it by ID, though filtering by category is usually enough.
+      // Example:
+      // if (_topArticle != null) {
+      //   _recentArticles.removeWhere((article) => article.id == _topArticle!.id);
+      // }
+
+      // Note: For proper pagination, your `_firestoreService.getRecentArticles`
+      // should ideally be updated to *also* exclude 'Top' category from the Firestore query itself.
+      // This is more efficient as you don't download unnecessary documents.
+      // However, for client-side filtering as requested, this is the correct place.
+
       // To manage _lastDocument for pagination, your FirestoreService should ideally return it,
       // or you get it from the raw snapshot which means your service returns QuerySnapshot
       // Let's adapt _loadMoreArticles to use raw snapshots to fit _lastDocument logic.
+      // --- END OF ADDITION / MODIFICATION ---
 
     } catch (e) {
       print('Error loading initial data: $e');
@@ -92,8 +114,14 @@ class _FrontPageState extends State<FrontPage> {
 
       if (snapshot.docs.isNotEmpty) {
         _lastDocument = snapshot.docs.last;
-        // Map DocumentSnapshot to Article model
-        _recentArticles.addAll(snapshot.docs.map((doc) => doc.data()).toList());
+         // --- START OF ADDITION / MODIFICATION ---
+        // Filter articles loaded in this batch as well
+        final List<Article> newArticles = snapshot.docs
+            .map((doc) => doc.data())
+            .where((article) => article.category != 'Top') // Apply the same filter here
+            .toList();
+        _recentArticles.addAll(newArticles);
+        // --- END OF ADDITION / MODIFICATION ---
       }
 
       setState(() {
