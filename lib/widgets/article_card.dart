@@ -49,9 +49,10 @@ class ArticleCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               article.title,
-              style: GoogleFonts.merriweather(
+              style: const TextStyle(
+                fontFamily: 'Merriweather',
                 fontSize: 18,
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w700,
                 height: 1.3,
                 letterSpacing: -0.8,
               ),

@@ -26,13 +26,15 @@ class AppDrawer extends StatelessWidget {
                 padding: EdgeInsetsGeometry.only(top:48),
                 decoration: const BoxDecoration(color: Colors.black),
                 child:
-                  Text('The Carveout',
-                    style: GoogleFonts.bebasNeue(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                height: 1.2,
-                                letterSpacing: -1,
-                                color: Colors.white),),
+                  Text(
+                    'The Carveout',
+                    style: const TextStyle(
+                      fontFamily: 'Bebas Neue',
+                      fontSize: 32,
+                      fontWeight: FontWeight.w400,
+                      height: 1.2,
+                      letterSpacing: -1,
+                      color: Colors.white),),
               ),
             ),
           ),

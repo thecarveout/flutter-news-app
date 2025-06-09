@@ -35,9 +35,10 @@ class TopArticleHero extends StatelessWidget {
                     const SizedBox(height: 12),
                     Text(
                       article.title,
-                      style: GoogleFonts.merriweather(
+                      style: const TextStyle(
+                        fontFamily: 'Merriweather',
                         fontSize: 24,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w700,
                         height: 1.2,
                         letterSpacing: -1,
                       ),
@@ -77,9 +78,10 @@ class TopArticleHero extends StatelessWidget {
                         children: [
                           Text(
                             article.title,
-                            style: GoogleFonts.merriweather(
+                          style: const TextStyle(
+                              fontFamily: 'Merriweather',
                               fontSize: 28,
-                              fontWeight: FontWeight.w900,
+                              fontWeight: FontWeight.w700,
                               height: 1.2,
                               letterSpacing: -1,
                             ),

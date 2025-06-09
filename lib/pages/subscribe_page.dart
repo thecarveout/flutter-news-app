@@ -6,6 +6,9 @@ import 'package:congress_app/services/firestore_service.dart'; // Import your se
 import 'package:congress_app/models/subscription.dart'; // Import your Subscription model
 import 'package:intl/intl.dart';
 import 'package:congress_app/widgets/CustomAppBar.dart';
+import 'package:congress_app/widgets/AppDrawer.dart'; // <--- ADD THIS IMPORT
+import 'package:congress_app/pages/search_page.dart'; // <--- ADD THIS IMPORT
+import 'package:congress_app/pages/about_page.dart'; // <--- ADD THIS IMPORT
 
 class SubscriptionPage extends StatefulWidget {
   const SubscriptionPage({super.key});
@@ -79,6 +82,28 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       appBar: CustomAppBar( // Use your custom AppBar
         formattedDate: formattedDateTime, // Pass the formatted date
       ),
+      // --- ADD THIS BLOCK HERE ---
+      drawer: AppDrawer(
+        currentRoute: 'Subscribe', // Correctly set to highlight 'Subscribe'
+        onNavigate: (route) {
+          Navigator.pop(context); // Always close the drawer first
+
+          if (route == 'Home') {
+            Navigator.popUntil(context, (r) => r.isFirst);
+          } else if (route == 'Search') {
+            // Push Search page, removing this page from the stack if needed
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const MySearchPage()));
+          } else if (route == 'About') {
+            // Push About page
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutPage()));
+          } else if (route == 'Subscribe') {
+            // You are already on the Subscribe page. Just close the drawer.
+            // No navigation action needed here.
+          }
+          // You might add a default case or log an unknown route if desired
+        },
+      ),
+      // --- END ADDED BLOCK ---
       body: Center(
         child: Container(
           height: MediaQuery.of(context).size.height,

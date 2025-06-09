@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:congress_app/widgets/CustomAppBar.dart';
+import 'package:congress_app/widgets/AppDrawer.dart'; // <--- ADD THIS IMPORT
+import 'package:congress_app/pages/search_page.dart'; // <--- ADD THIS IMPORT
+import 'package:congress_app/pages/subscribe_page.dart';
 
 class AboutPage extends StatelessWidget {
 
@@ -17,6 +19,27 @@ class AboutPage extends StatelessWidget {
       appBar: CustomAppBar( // Use your custom AppBar
         formattedDate: formattedDateTime, // Pass the formatted date
       ),
+       // --- ADD THIS BLOCK HERE ---
+      drawer: AppDrawer(
+        currentRoute: 'About',
+        onNavigate: (route) {
+          Navigator.pop(context); // Always close the drawer first
+
+          if (route == 'Home') {
+            // If navigating to 'Home' (your FrontPage), pop all routes until the first one
+            Navigator.popUntil(context, (r) => r.isFirst);
+          } else if (route == 'Search') {
+            // If navigating to 'Search' from 'AboutPage', push the MySearchPage
+            // Make sure MySearchPage is imported: import 'package:congress_app/pages/search_page.dart';
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const MySearchPage()));
+          } else if (route == 'About') {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutPage()));
+          } else if (route == 'Subscribe') {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionPage()));
+          }
+        },
+      ),
+      // --- END ADDED BLOCK ---
       body: Center(
         child: Container(
           height: MediaQuery.of(context).size.height,
@@ -30,7 +53,8 @@ class AboutPage extends StatelessWidget {
               children: [
                 Text(
                   'About',
-                  style: GoogleFonts.merriweather(
+                  style: const TextStyle(
+                    fontFamily: 'Merriweather',
                     fontSize: 48,
                     fontWeight: FontWeight.w900,
                     height: 1.15,
@@ -39,7 +63,8 @@ class AboutPage extends StatelessWidget {
                 ),
                 Text(
                   'This is a satirical news app. All content is made up by Jerome Halligan.',
-                  style: GoogleFonts.merriweather(
+                  style: const TextStyle(
+                    fontFamily: 'Merriweather',
                     fontSize: 18,
                     fontWeight: FontWeight.w400,
                     height: 1.15,

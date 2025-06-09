@@ -23,3 +23,21 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/images/ # If you have a logo image
+    - assets/fonts/ 
+    # ... any other assets
+
+  fonts:
+    - family: Bebas Neue 
+      fonts:
+        - asset: assets/fonts/BebasNeue-Regular.ttf 
+          weight: 400 
+    - family: Merriweather # This is the name you'll use in your code
+      fonts:
+        # Declare the single variable font file here:
+        - asset: assets/fonts/merriweather-latin-ext-400-normal.ttf
+          weight: 400
+        - asset: assets/fonts/merriweather-latin-900-normal.ttf
+          weight: 900

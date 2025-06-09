@@ -15,26 +15,12 @@
   const app = initializeApp(firebaseConfig);
 </script>
 
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
 
-  <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <link rel="icon" type="image/png" href="/icons/favicon-96x96.png" sizes="96x96" />
@@ -45,8 +31,59 @@
 
   <title>The Carveout</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden; /* Prevent scrollbars */
+      background-color: white; /* Your desired background color */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh; /* Full viewport height */
+      /* Optionally hide scrollbars on iOS */
+      -webkit-overflow-scrolling: touch;
+      -webkit-transform: translate3d(0,0,0);
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+    .loading-container {
+      text-align: center;
+      color: black; /* Text color */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; /* System font stack for immediate load */
+      padding: 20px;
+    }
+    .loading-container h1 {
+      font-size: 3em; /* Adjust size */
+      margin: 0;
+    }
+    /* If you want to show an image from your web/ directory */
+    .loading-container img {
+      width: 150px; /* Adjust size */
+      height: auto;
+      margin-bottom: 20px;
+    }
+  </style>
+
 </head>
 <body>
+  <div class="loading-container" id="loading-container">
+    <h1>The Carveout</h1>
+    </div>
+
   <script src="flutter_bootstrap.js" async></script>
+  <script>
+    // This script will remove the loading container once Flutter is ready
+    window.addEventListener('load', function () {
+      const loadingContainer = document.getElementById('loading-container');
+      if (loadingContainer) {
+        loadingContainer.style.opacity = '0'; /* Fade out */
+        loadingContainer.style.transition = 'opacity 0.5s ease-out'; /* Smooth transition */
+        setTimeout(() => {
+            loadingContainer.remove(); /* Remove after fade out */
+        }, 500);
+      }
+    });
+  </script>
 </body>
 </html>

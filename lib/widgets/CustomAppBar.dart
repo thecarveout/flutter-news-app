@@ -28,8 +28,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0, // No shadow for a flat design
-
-      /* leading: Builder(
+      leading: Builder(
         builder: (context) => IconButton(
           icon: const Icon(Icons.menu, color: Colors.black), // Menu icon for drawer
           onPressed: () {
@@ -39,9 +38,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               print('Warning: No drawer found for this Scaffold.');
             }
           },
+          tooltip: null,
         ),
       ),
- */
+
       title: Center( // Center the entire content block horizontally
         child: Container(
           // Constrain the content to a max width, as before
@@ -52,11 +52,15 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             mainAxisSize: MainAxisSize.min, // Make column only take up needed vertical space
             children: [
               Text('The Carveout',
-                style: GoogleFonts.bebasNeue(
+                style: const TextStyle(
+                              fontFamily: 'Bebas Neue',
                               fontSize: 32,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w400,
                               height: 1.2,
-                              letterSpacing: -1,),),
+                              letterSpacing: -1,
+                              color: Colors.black,
+                              ),
+                ),
 
               // Formatted Date Text
               Text(
@@ -91,6 +95,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         );
       },
+      tooltip: null,
     ),
     ],
   );

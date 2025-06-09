@@ -17,6 +17,7 @@ import 'package:congress_app/widgets/image_with_attribution.dart';
 import 'package:congress_app/pages/article_page.dart';
 import 'package:congress_app/pages/about_page.dart';
 import 'package:congress_app/pages/subscribe_page.dart'; // Assuming you add this page
+import 'package:congress_app/pages/search_page.dart';
 
 class FrontPage extends StatefulWidget {
   const FrontPage({Key? key}) : super(key: key);
@@ -26,6 +27,9 @@ class FrontPage extends StatefulWidget {
 }
 
 class _FrontPageState extends State<FrontPage> {
+  
+  final ScrollController _scrollController = ScrollController();
+
   // Instantiate your FirestoreService
   final FirestoreService _firestoreService = FirestoreService();
 
@@ -137,13 +141,15 @@ class _FrontPageState extends State<FrontPage> {
     }
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   // This method handles all drawer navigation
   void _onDrawerNavigate(String route) {
     Navigator.pop(context); // Always close the drawer first
-
-    // Prevent navigating to the same route if already there
-    if (_currentRoute == route) return;
 
     setState(() {
       _currentRoute = route; // Update selected item
@@ -151,20 +157,40 @@ class _FrontPageState extends State<FrontPage> {
 
     switch (route) {
       case 'Home':
-        // If already on Home, do nothing or scroll to top
-        // For now, just setting state is enough if it's the current page
+        // If we are already at the root (FrontPage), scroll to top.
+        // Otherwise, pop all routes until the first one is reached.
+        if (Navigator.of(context).canPop()) {
+           print('FrontPage: Popping until first route (Home).');
+           Navigator.popUntil(context, (r) => r.isFirst);
+        } else {
+          print('FrontPage: Already at home, scrolling to top.');
+          _scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
         break;
       case 'About':
+        print('FrontPage: Navigating to AboutPage.');
+        // Remove any 'if (_currentRoute == route) return;' check here.
+        // Always push a new instance if you want to allow re-entry.
         Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutPage()));
         break;
       case 'Subscribe':
+        print('FrontPage: Navigating to SubscriptionPage.');
         Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionPage()));
         break;
-      // Add more cases for other routes
-      default:
+      case 'Search':
+        print('FrontPage: Navigating to MySearchPage.');
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const MySearchPage()));
         break;
+      default:
+        print('FrontPage: Unhandled route: $route');
+        break;
+      }
     }
-  }
+
 
   @override
   Widget build(BuildContext context) {    
@@ -179,7 +205,8 @@ class _FrontPageState extends State<FrontPage> {
         currentRoute: _currentRoute,
         onNavigate: _onDrawerNavigate,
       ),
-      body: _isLoadingInitialData
+      body: RepaintBoundary(
+          child: _isLoadingInitialData
           ? const Center(child: CircularProgressIndicator()) // Initial loading indicator
           : RefreshIndicator(
               onRefresh: _fetchInitialData, // Pull-to-refresh to re-fetch all data
@@ -271,6 +298,7 @@ class _FrontPageState extends State<FrontPage> {
                 ),
               ),
             ),
+      ),
     );
   }
 }
