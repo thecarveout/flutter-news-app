@@ -1,0 +1,12 @@
+// /Users/jeromehalligan/dev/functions/tsconfig.dev.json
+{
+  "extends": "./tsconfig.json", // This usually extends the main tsconfig.json
+  "compilerOptions": {
+    "noEmit": true // Don't emit JavaScript files during linting
+  },
+  "include": [
+    "src/**/*.ts", // <--- THIS IS THE CRUCIAL CHANGE
+    ".eslintrc.js"
+  ],
+  "exclude": []
+}

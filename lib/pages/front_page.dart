@@ -1,8 +1,9 @@
 // lib/pages/front_page.dart
 import 'package:congress_app/models/subscription.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Still needed for DocumentSnapshot in _lastDoc (for now)
-import 'package:intl/intl.dart'; // For date formatting
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 // Import your custom widgets and services
 import 'package:congress_app/services/firestore_service.dart';
@@ -196,6 +197,33 @@ class _FrontPageState extends State<FrontPage> {
   Widget build(BuildContext context) {    
     final formattedDateTime = DateFormat('EEEE, MMMM d, yyyy').format(DateTime.now()); // Changed 'EEEE, MMMM d,YYYY' to 'EEEE, MMMM d, yyyy' for correct year formatting
    
+  StreamBuilder<User?>(
+    stream: FirebaseAuth.instance.authStateChanges(), // Listen for auth state changes
+    builder: (context, authSnapshot) {
+      if (authSnapshot.connectionState == ConnectionState.waiting) {
+        return const CircularProgressIndicator(); // Or a loading spinner
+      }
+
+      final User? user = authSnapshot.data; // Get the current user
+
+      // Replace 'YOUR_HARDCODED_EDITOR_UID_HERE' with your actual Firebase User ID
+      const String editorUid = 'B7a5H5FOoNTlDIN7NYUuA7X5iBd2';
+
+      if (user != null && user.uid == editorUid) {
+        // User is logged in and is YOU (the editor)
+        return FloatingActionButton(
+          onPressed: () {
+            Navigator.pushNamed(context, '/newPost');
+          },
+          child: const Icon(Icons.add),
+          tooltip: 'Create New Post',
+        );
+      }
+      // If not logged in, or not the editor UID, don't return a button
+      return const SizedBox.shrink(); // Hide the button
+    },
+  )
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar( // Use your custom AppBar
